@@ -17,6 +17,8 @@ def main():
 
     args = parser.parse_args()
 
+    nfm.set_up()
+
     if len(sys.argv) < 2:
         parser.print_help()
 
@@ -43,7 +45,7 @@ def main():
 
 
 
-    nfm.set_up()
+
 
     if args.template:
         nfm.write_new_file(header_string, file_path + filetype, template_name=args.template)
