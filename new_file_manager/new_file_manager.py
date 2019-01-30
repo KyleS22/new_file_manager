@@ -35,6 +35,7 @@ def get_comment_char(filetype):
         return "", "", ""
 
 
+
 def get_header_string(header, comment_char):
     """
     Parses a header and creates a string representation of it
@@ -102,6 +103,142 @@ def set_up():
 
         with open(HEADER_DIR + "default.json", 'w') as fp:
             json.dump(default_header, fp)
+
+        memory_data = {"sub_folders": {}}
+
+        with open(MAIN_DIR + "memory.json", 'w') as mem:
+            json.dump(memory_data, mem)
+
+
+def get_remembered_header(dir_path):
+    """
+    Get the name of the remembered header for this directory
+    :param dir_path: the path to the current directory
+    :return: The name of the header to use
+    """
+    with open(MAIN_DIR + "memory.json", 'r') as mem:
+        memory = json.load(mem)
+
+    folders = []
+    
+    while 1:
+        dir_path, folder = os.path.split(dir_path)
+
+        if folder != "":
+            folders.append(folder)
+        else:
+            if dir != "":
+                folders.append(dir_path)
+
+            break
+
+    folders.reverse()
+
+    return get_remembered_header_helper(memory, folders)
+
+def get_remembered_header_helper(memory, folders):
+    """
+    Recursively find the header name in the dict
+    :param memory: The dictionary of the memory json
+    :param folders: A list of the folders in order
+    :return: the name of the header
+    """
+    if len(folders) <= 0:
+        return memory["header_name"]
+
+    folder = folders.pop(0)
+
+    if folder in memory["sub_folders"].keys():
+        name = get_remembered_header_helper(memory["sub_folders"][folder], folders)
+        
+        if name is None:
+            return memory["header_name"]
+        else:
+            return name
+    else:
+        
+        return memory["header_name"]
+
+def remember_header(header_name, dir_path):
+    """
+    Remember the header to use for a given directory
+    :param header_name: The name of the header to remember
+    :param dir: The path to the directory to remember for
+    :return: None
+    """
+    
+    with open(MAIN_DIR + "memory.json", 'r') as mem:
+        memory = json.load(mem)
+
+    folders = []
+    
+    while 1:
+        dir_path, folder = os.path.split(dir_path)
+
+        if folder != "":
+            folders.append(folder)
+        else:
+            if dir != "":
+                folders.append(dir_path)
+
+            break
+
+    folders.reverse()
+
+    new_memory = check_or_add_folder(memory,folders, header_name)
+
+    with open(MAIN_DIR + "memory.json", 'w') as mem_write:
+        json.dump(new_memory, mem_write)
+
+def forget_header(dir_path):
+    """
+    Forget the header for a directory
+    :param dir_path: The directory to forget
+    """
+
+    with open(MAIN_DIR + "memory.json", 'r') as mem:
+        memory = json.load(mem)
+
+    folders = []
+    
+    while 1:
+        dir_path, folder = os.path.split(dir_path)
+
+        if folder != "":
+            folders.append(folder)
+        else:
+            if dir != "":
+                folders.append(dir_path)
+
+            break
+
+    folders.reverse()
+
+    new_memory = check_or_add_folder(memory,folders, "none")
+
+    with open(MAIN_DIR + "memory.json", 'w') as mem_write:
+        json.dump(new_memory, mem_write)
+
+
+    
+
+def check_or_add_folder(memory, folders, header_name):
+   
+    if len(folders) <= 0:
+        
+        memory["header_name"] = header_name
+        return memory
+
+    folder = folders.pop(0)
+    
+
+    if folder in memory["sub_folders"].keys():
+        memory["sub_folders"][folder] = check_or_add_folder(memory["sub_folders"][folder], folders, header_name)
+    else:
+        memory["sub_folders"][folder] = {"header_name" : "none", "sub_folders": {}}
+        memory["sub_folders"][folder] = check_or_add_folder(memory["sub_folders"][folder], folders, header_name)
+    
+    return memory
 
 
 def list_templates():
