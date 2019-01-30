@@ -104,7 +104,7 @@ def set_up():
         with open(HEADER_DIR + "default.json", 'w') as fp:
             json.dump(default_header, fp)
 
-        memory_data = {"sub_folders": {}}
+        memory_data = {"sub_folders": {}, "header_name": "none"}
 
         with open(MAIN_DIR + "memory.json", 'w') as mem:
             json.dump(memory_data, mem)
